@@ -1,0 +1,18 @@
+canvas {
+    position: absolute;
+    top: 50px;
+    left: 34%;
+}
+#video {
+    width: 600px;
+    height: 450px;
+}
+#face-name {
+    max-width: 200px;
+}
+.figure-face {
+    width: 100px;
+}
+.start-50 {
+    left:50% !important
+}

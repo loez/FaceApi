@@ -1,107 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>TESTE FACE API</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="public/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fontawesome CSS -->
+    <link href="public/lib/fontawesome/css/fontawesome.css" rel="stylesheet">
+    <link href="public/lib/fontawesome/css/brands.css" rel="stylesheet">
+    <link href="public/lib/fontawesome/css/solid.css" rel="stylesheet">
+    <!-- Libs CSS -->
+    <link href="public/lib/animate/animate.css" rel="stylesheet">
+    <!-- Local CSS -->
+    <link href="public/css/toast.css" rel="stylesheet">
+    <link href="public/css/style.css" rel="stylesheet">
+    <title>Teste Face API</title>
 </head>
-<style>
-    body {
-        padding: 0;
-        margin: 0;
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    canvas {
-        position: absolute;
-    }
-</style>
 <body>
-<video id="video" width="600" height="450" autoplay></video>
+<div class="container">
+    <header>
+        <nav class="navbar navbar-expand-md navbar-light bg-white absolute-top">
+            <div class="container">
+                <button class="navbar-toggler order-2 order-md-1" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbar-left navbar-right" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <a class="navbar-brand mx-auto order-1 order-md-3" href="index.html">Face API</a>
+            </div>
+        </nav>
+    </header>
+    <video id="video" class="rounded mx-auto d-block mb-3 img-thumbnail" autoplay></video>
+    <form id="imagem" action="#">
+        <div class="input-group mb-3">
+            <input type="file" class="form-control" id="inputGroupFile02" accept="image/*">
+            <label for="face-name"></label><input type="text" class="form-control" id="face-name" placeholder="Nome">
+            <button class="btn btn-outline-secondary" type="button" id="inputGroupFileAddon04">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </button>
+        </div>
+    </form>
+    <div class="card">
+        <div class="card-body" id="card-imagens">
+            <p class="text-center text-muted">Nenhuma imagem adicionada para comparação</p>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="bs-toast toast toast-ex start-50 animate__animated my-2 fade hide" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+    <div class="toast-header">
+        <i class="bx bx-bell me-2"></i>
+        <div class="me-auto fw-semibold toast-titulo"></div>
+        <small></small>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+        <div class="toast-msg"></div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="public/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="public/lib/face-api/face-api.js"></script>
+<script src="public/js/face.js"></script>
+<script src="public/js/toast.js"></script>
 </body>
-<script src="public/js/face-api.js" ></script>
-<script>
-    const MODEL_URL = 'public/models'
-    const video = document.getElementById("video");
-
-    Promise.all([
-        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-        faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL),
-    ]).then(startWebcam);
-
-    function startWebcam() {
-        navigator.mediaDevices
-            .getUserMedia({
-                video: true,
-                audio: false,
-            })
-            .then((stream) => {
-                video.srcObject = stream;
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }
-
-    function getLabeledFaceDescriptions() {
-        const labels = ["Luiz"];
-        return Promise.all(
-            labels.map(async (label) => {
-                const descriptions = [];
-                for (let i = 1; i <= 2; i++) {
-                    const img = await faceapi.fetchImage(`images\\eu4.jpg`);
-                    const detections = await faceapi
-                        .detectSingleFace(img)
-                        .withFaceLandmarks()
-                        .withFaceDescriptor()
-                        .withAgeAndGender();
-                    descriptions.push(detections.descriptor);
-                }
-                return new faceapi.LabeledFaceDescriptors(label, descriptions);
-            })
-        );
-    }
-
-    video.addEventListener("play", async () => {
-        const labeledFaceDescriptors = await getLabeledFaceDescriptions();
-        const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors,0.6);
-
-        const canvas = faceapi.createCanvasFromMedia(video);
-        document.body.append(canvas);
-
-        const displaySize = { width: video.width, height: video.height };
-        faceapi.matchDimensions(canvas, displaySize);
-
-        setInterval(async () => {
-            const detections = await faceapi
-                .detectAllFaces(video)
-                .withFaceLandmarks()
-                .withFaceDescriptors()
-                .withAgeAndGender();
-            const resizedDetections = faceapi.resizeResults(detections, displaySize);
-
-            canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-
-            const results = resizedDetections.map((d) => {
-                let dadosretorno = faceMatcher.findBestMatch(d.descriptor);
-                dadosretorno.age = d.age;
-                dadosretorno.gender = d.gender;
-                return dadosretorno;
-            });
-            results.forEach((result, i) => {
-                const box = resizedDetections[i].detection.box;
-                const drawBox = new faceapi.draw.DrawBox(box, {
-                    label: result + " Idade: "+ result.age.toFixed() + " - Genero: " + result.gender,
-                });
-                drawBox.draw(canvas);
-            });
-        }, 100);
-    });
-
-</script>
 </html>

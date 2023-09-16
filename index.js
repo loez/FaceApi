@@ -5,9 +5,9 @@ const port = 3000
 app.use(express.static(__dirname + '/'));
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
+    res.render('index.html')
 })
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
+    console.log(`Página rodando na porta: ${port}`)
 })

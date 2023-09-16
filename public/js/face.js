@@ -3,8 +3,8 @@ const video = document.getElementById("video");
 const buttonStartSop = document.getElementById('startStop');
 const buttonUpload = document.getElementById('inputGroupFileAddon04');
 
-buttonStartSop.addEventListener('click',function (){
-    if(!document.querySelectorAll('img').length){
+buttonStartSop.addEventListener('click', function () {
+    if (!document.querySelectorAll('img').length) {
         toast("Face API", "Sem dados de comparação adicionados", EnumToast.informacao)
         return false;
     }
@@ -17,7 +17,7 @@ buttonStartSop.addEventListener('click',function (){
 })
 
 function startWebcam() {
-    if(window?.stream?.getVideoTracks().some(x=> x.enabled === true && x.readyState === 'live')){
+    if (window?.stream?.getVideoTracks().some(x => x.enabled === true && x.readyState === 'live')) {
         window.stream.getTracks().forEach((track) => {
             track.stop();
         })
@@ -25,7 +25,7 @@ function startWebcam() {
         video.srcObject = null;
         buttonUpload.disabled = false;
         AdicionaRemoveEvento(false);
-        document.querySelectorAll('canvas').forEach((canvas)=>{
+        document.querySelectorAll('canvas').forEach((canvas) => {
             canvas.remove();
         })
         return false;
@@ -47,10 +47,10 @@ function startWebcam() {
 }
 
 function getLabeledFaceDescriptions() {
-    const labels = [...document.querySelectorAll('img')].map(x=> x.getAttribute('data-name'));
+    const labels = [...document.querySelectorAll('img')].map(x => x.getAttribute('data-name'));
     const imagensComparacao = [...document.querySelectorAll('img')];
     return Promise.all(
-        labels.map(async (label,index) => {
+        labels.map(async (label, index) => {
             const descriptions = [];
             for (let i = 0; i <= 1; i++) {
                 const detections = await faceapi
@@ -109,12 +109,12 @@ document.getElementById('inputGroupFileAddon04').addEventListener('click', funct
 
             document.getElementById('card-imagens').appendChild(figure);
 
-            tgt.value= null;
+            tgt.value = null;
             name.value = '';
             toast("Adicionar face", "Face adicionada com sucesso!", EnumToast.sucesso);
             document.querySelector('p.text-center')?.remove()
-            document.querySelectorAll('.remove-image').forEach((elemento) =>{
-                elemento.addEventListener('click',function (item){
+            document.querySelectorAll('.remove-image').forEach((elemento) => {
+                elemento.addEventListener('click', function (item) {
                     this.parentElement.remove();
                 })
             })
@@ -126,12 +126,12 @@ document.getElementById('inputGroupFileAddon04').addEventListener('click', funct
 
 video.addEventListener("play", async () => {
     const labeledFaceDescriptors = await getLabeledFaceDescriptions();
-    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors,0.6);
+    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
 
     const canvas = faceapi.createCanvasFromMedia(video);
     document.body.append(canvas);
 
-    const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
+    const displaySize = {width: video.offsetWidth, height: video.offsetHeight};
     faceapi.matchDimensions(canvas, displaySize);
 
     setInterval(async () => {
@@ -153,21 +153,43 @@ video.addEventListener("play", async () => {
         results.forEach((result, i) => {
             const box = resizedDetections[i].detection.box;
             const drawBox = new faceapi.draw.DrawBox(box, {
-                label: result + " Idade: "+ result.age.toFixed() + " - Genero: " + result.gender,
+                label: RetornaPessoa(result) + " Idade: " + result.age.toFixed() + " - Genero: " + RetornaGenero(result.gender),
             });
             drawBox.draw(canvas);
         });
-    }, 100);
+    }, 500);
 });
 
-function AdicionaRemoveEvento(adiciona){
-    if(adiciona){
-        document.querySelectorAll('a').forEach((anchor) =>{
+function AdicionaRemoveEvento(adiciona) {
+    if (adiciona) {
+        document.querySelectorAll('a').forEach((anchor) => {
             anchor.classList.add('bloqueia-delete');
         })
-    }else{
-        document.querySelectorAll('a').forEach((anchor) =>{
+    } else {
+        document.querySelectorAll('a').forEach((anchor) => {
             anchor.classList.remove('bloqueia-delete');
         })
     }
+}
+
+function RetornaGenero(genero) {
+    switch (genero.toLowerCase()) {
+        case "male":
+            return "Homem";
+        case "female":
+            return "Mulher";
+        default:
+            return "Desconhecido";
+    }
+}
+
+function RetornaPessoa(result) {
+    switch (result._label) {
+        case "unknown":
+            result._label = "Desconhecido";
+            break;
+        default:
+            break;
+    }
+    return result;
 }

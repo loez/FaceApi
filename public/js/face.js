@@ -156,6 +156,7 @@ video.addEventListener("play", async () => {
                 label: RetornaPessoa(result) + " Idade: " + result.age.toFixed() + " - Genero: " + RetornaGenero(result.gender),
             });
             drawBox.draw(canvas);
+            DestacaPessoa(result._label);
         });
     }, 500);
 });
@@ -184,12 +185,19 @@ function RetornaGenero(genero) {
 }
 
 function RetornaPessoa(result) {
-    switch (result._label) {
-        case "unknown":
-            result._label = "Desconhecido";
-            break;
-        default:
-            break;
+    if (result._label === "unknown") {
+        result._label = "Desconhecido";
     }
+
     return result;
+}
+
+function DestacaPessoa(nome) {
+    let arrayPessoa = document.querySelectorAll('[data-name="'+nome+'"]');
+    arrayPessoa.forEach((el) => {
+        el.classList.add('animate__animated', 'animate__tada');
+        el.addEventListener('animationend', () => {
+            el.classList.remove('animate__animated', 'animate__tada');
+        });
+    })
 }

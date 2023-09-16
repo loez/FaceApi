@@ -2,7 +2,14 @@ const MODEL_URL = 'public/models'
 const video = document.getElementById("video");
 const buttonStartSop = document.getElementById('startStop');
 const buttonUpload = document.getElementById('inputGroupFileAddon04');
+const buttonPhoto = document.getElementById('takePhoto');
 
+buttonPhoto.addEventListener('click',function (){
+    let canvas = document.createElement("canvas");
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    AdicionaFoto(canvas.toDataURL("image/jpeg"),document.getElementById('face-name'),document.getElementById('inputGroupFile02'))
+    canvas.remove();
+})
 buttonStartSop.addEventListener('click', function () {
     if (!document.querySelectorAll('img').length) {
         toast("Face API", "Sem dados de comparação adicionados", EnumToast.informacao)
@@ -58,11 +65,48 @@ function getLabeledFaceDescriptions() {
                     .withFaceLandmarks()
                     .withFaceDescriptor()
                     .withAgeAndGender();
-                descriptions.push(detections.descriptor);
+                descriptions.push(detections?.descriptor);
             }
             return new faceapi.LabeledFaceDescriptors(label, descriptions);
         })
     );
+}
+
+function AdicionaFoto(fr, name, tgt) {
+    let figure = document.createElement('figure'),
+        caption = document.createElement('figcaption'),
+        img = document.createElement('img'),
+        deletar = document.createElement('a');
+
+    deletar.classList.add('remove-image');
+    deletar.href = '#!';
+    deletar.textContent = 'x';
+
+    img.src = fr;
+    img.setAttribute("alt", name.value);
+    img.dataset.name = name.value;
+    img.classList.add("figure-img", "img-fluid", "rounded");
+
+    caption.innerText = name.value;
+    caption.classList.add("figure-caption", "text-center");
+
+    figure.classList.add("figure", "figure-face");
+    figure.appendChild(deletar);
+    figure.appendChild(img);
+    figure.appendChild(caption);
+
+
+    document.getElementById('card-imagens').appendChild(figure);
+
+    tgt.value = null;
+    name.value = '';
+    toast("Adicionar face", "Face adicionada com sucesso!", EnumToast.sucesso);
+    document.querySelector('p.text-center')?.remove()
+    document.querySelectorAll('.remove-image').forEach((elemento) => {
+        elemento.addEventListener('click', function (item) {
+            this.parentElement.remove();
+        })
+    })
 }
 
 document.getElementById('inputGroupFileAddon04').addEventListener('click', function () {
@@ -84,40 +128,7 @@ document.getElementById('inputGroupFileAddon04').addEventListener('click', funct
     if (FileReader && files && files.length) {
         let fr = new FileReader();
         fr.onload = function () {
-            let figure = document.createElement('figure'),
-                caption = document.createElement('figcaption'),
-                img = document.createElement('img'),
-                deletar = document.createElement('a');
-
-            deletar.classList.add('remove-image');
-            deletar.href = '#!';
-            deletar.textContent = 'x';
-
-            img.src = fr.result;
-            img.setAttribute("alt", name.value);
-            img.dataset.name = name.value;
-            img.classList.add("figure-img", "img-fluid", "rounded");
-
-            caption.innerText = name.value;
-            caption.classList.add("figure-caption", "text-center");
-
-            figure.classList.add("figure", "figure-face");
-            figure.appendChild(deletar);
-            figure.appendChild(img);
-            figure.appendChild(caption);
-
-
-            document.getElementById('card-imagens').appendChild(figure);
-
-            tgt.value = null;
-            name.value = '';
-            toast("Adicionar face", "Face adicionada com sucesso!", EnumToast.sucesso);
-            document.querySelector('p.text-center')?.remove()
-            document.querySelectorAll('.remove-image').forEach((elemento) => {
-                elemento.addEventListener('click', function (item) {
-                    this.parentElement.remove();
-                })
-            })
+            AdicionaFoto(fr.result, name, tgt);
         }
         fr.readAsDataURL(files[0]);
     }

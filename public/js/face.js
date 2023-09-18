@@ -66,7 +66,7 @@ function getLabeledFaceDescriptions() {
     const imagensComparacao = [...document.querySelectorAll('img')];
     return Promise.all(
         labels.map(async (label, index) => {
-            const descriptions = [];
+            let descriptions = [];
             for (let i = 0; i <= 1; i++) {
                 const detections = await faceapi
                     .detectSingleFace(imagensComparacao[index])
@@ -74,6 +74,10 @@ function getLabeledFaceDescriptions() {
                     .withFaceDescriptor()
                     .withAgeAndGender();
                 descriptions.push(detections?.descriptor);
+            }
+            descriptions = descriptions.filter(x=> x !== undefined);
+            if(!descriptions.length){
+                return;
             }
             return new faceapi.LabeledFaceDescriptors(label, descriptions);
         })
@@ -144,7 +148,13 @@ document.getElementById('inputGroupFileAddon04').addEventListener('click', funct
 
 
 video.addEventListener("play", async () => {
-    const labeledFaceDescriptors = await getLabeledFaceDescriptions();
+    let labeledFaceDescriptors = await getLabeledFaceDescriptions();
+    labeledFaceDescriptors = labeledFaceDescriptors.filter(x=> x !== undefined)
+    if(!labeledFaceDescriptors.length){
+        toast("Face API","Sem imagem de rosto detectado para comparação",EnumToast.informacao);
+        startWebcam();
+        return false;
+    }
     const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
 
     const canvas = faceapi.createCanvasFromMedia(video);

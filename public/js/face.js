@@ -1,5 +1,3 @@
-import {Toast} from "../lib/bootstrap/js/bootstrap.esm";
-
 const MODEL_URL = 'public/models'
 const video = document.getElementById("video");
 const buttonStartSop = document.getElementById('startStop');
@@ -8,9 +6,9 @@ const buttonPhoto = document.getElementById('takePhoto');
 
 buttonPhoto.addEventListener('click',async function (){
     const detections = await faceapi
-        .detectSingleFace(video)
+        .detectAllFaces(video)
         .withFaceLandmarks()
-    if(detections === undefined){
+    if(!detections.length){
         toast("Face Api","Sem imagem detectada",EnumToast.erro);
         return false;
     }
@@ -113,7 +111,7 @@ function AdicionaFoto(fr, name, tgt) {
     toast("Adicionar face", "Face adicionada com sucesso!", EnumToast.sucesso);
     document.querySelector('p.text-center')?.remove()
     document.querySelectorAll('.remove-image').forEach((elemento) => {
-        elemento.addEventListener('click', function (item) {
+        elemento.addEventListener('click', function () {
             this.parentElement.remove();
         })
     })

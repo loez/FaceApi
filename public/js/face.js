@@ -4,7 +4,14 @@ const buttonStartSop = document.getElementById('startStop');
 const buttonUpload = document.getElementById('inputGroupFileAddon04');
 const buttonPhoto = document.getElementById('takePhoto');
 
-buttonPhoto.addEventListener('click',function (){
+buttonPhoto.addEventListener('click',async function (){
+    const detections = await faceapi
+        .detectSingleFace(video)
+        .withFaceLandmarks()
+    if(detections === undefined){
+        toast("Face Api","Sem imagem detectada",EnumToast.erro);
+        return false;
+    }
     let canvas = document.createElement("canvas");
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
     AdicionaFoto(canvas.toDataURL("image/jpeg"),document.getElementById('face-name'),document.getElementById('inputGroupFile02'))

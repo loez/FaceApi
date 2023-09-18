@@ -1,3 +1,5 @@
+import {Toast} from "../lib/bootstrap/js/bootstrap.esm";
+
 const MODEL_URL = 'public/models'
 const video = document.getElementById("video");
 const buttonStartSop = document.getElementById('startStop');
@@ -56,6 +58,7 @@ function startWebcam() {
             AdicionaRemoveEvento(true)
         })
         .catch((error) => {
+            toast("Face API","Sem permissão de acesso a webcam, favor autorizar",EnumToast.informacao)
             console.error(error);
         });
 }
